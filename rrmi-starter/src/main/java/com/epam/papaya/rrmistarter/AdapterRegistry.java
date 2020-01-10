@@ -1,60 +1,56 @@
 package com.epam.papaya.rrmistarter;
 
 import com.epam.papaya.rrmistarter.annotations.AdaptTo;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.epam.papaya.rrmistarter.annotations.AdaptToRemote;
 import org.reflections.Reflections;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * @author Evgeny Borisov
  */
 public class AdapterRegistry implements ApplicationContextInitializer {
-    private ObjectMapper mapper = new ObjectMapper();
 
-    {
-        mapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_ABSENT);
-    }
+    private Map<String, Map<String, Method>> methodsContainer = new HashMap<>();
+    private ConfigurableApplicationContext context;
 
 
     @Override
     public void initialize(ConfigurableApplicationContext context) {
 
-
+        this.context = context;
         var scanner = new Reflections("com.epam.papaya");
         Set<Class<? extends Adapter>> set = scanner.getSubTypesOf(Adapter.class);
-        set.stream().filter(Class::isInterface).forEach(adapterIfc->{
-            Object proxyAdapter = Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), new Class[]{adapterIfc}, (proxy, method, args) -> {
+        set.stream()
+                .filter(Class::isInterface)
+                .filter(this::needsTobeGenerated)
+                .forEach(adapterIfc -> {
 
-                    AdaptTo annotation = adapterIfc.getMethod(method.getName(), method.getParameterTypes()).getAnnotation(AdaptTo.class);
-
-                    Object real = context.getBean(annotation.ifc());
-                    Method realMethod = Arrays.stream(real.getClass().getMethods()).filter(method1 -> method1.getName().equals(method.getName())).findAny().get();
-
-
-                    var inputType = realMethod.getParameterTypes()[0];
-
-                    Object input = mapper.convertValue(args[0], inputType);
-                    Object retVal = realMethod.invoke(real, input);
-                    Object convertedRetVal = mapper.convertValue(retVal, method.getReturnType());
-                    return convertedRetVal;
-
-               
+                    Object proxyAdapter = Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), new Class[]{adapterIfc}, getInvocationHandler(adapterIfc));
 
 
+                    Arrays.stream(proxyAdapter.getClass().getInterfaces()).forEach(System.out::println);
+                    context.getBeanFactory().registerSingleton(adapterIfc.getSimpleName(), proxyAdapter);
+                });
 
-            });
+    }
 
+    private InvocationHandler getInvocationHandler(Class<? extends Adapter> adapterIfc) {
+        if (Arrays.stream(adapterIfc.getMethods()).anyMatch(method -> method.isAnnotationPresent(AdaptTo.class))) {
+            return new LocalImplInvocationHandler(context, adapterIfc);
+        }
+        return new RestRemoteImplInvocationHandler(context, adapterIfc);
+    }
 
-            Arrays.stream(proxyAdapter.getClass().getInterfaces()).forEach(System.out::println);
-            context.getBeanFactory().registerSingleton(adapterIfc.getSimpleName(), proxyAdapter);
-        });
-
+    private boolean needsTobeGenerated(Class<? extends Adapter> aClass) {
+        return Arrays.stream(aClass.getMethods()).anyMatch(method -> method.isAnnotationPresent(AdaptToRemote.class) || method.isAnnotationPresent(AdaptTo.class));
     }
 }

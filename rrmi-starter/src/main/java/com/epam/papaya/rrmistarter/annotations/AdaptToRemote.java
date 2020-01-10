@@ -1,5 +1,6 @@
 package com.epam.papaya.rrmistarter.annotations;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.lang.annotation.ElementType;
@@ -15,6 +16,6 @@ import java.lang.annotation.Target;
 public @interface AdaptToRemote {
     String serviceName();
     String endpoint();
-    RequestMethod method() default RequestMethod.GET;
-    String dtoName();
+    HttpMethod method() default HttpMethod.GET;
+   // todo Why do we need this? String dtoName();
 }

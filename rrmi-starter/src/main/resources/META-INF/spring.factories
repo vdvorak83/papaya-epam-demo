@@ -1,1 +1,2 @@
 org.springframework.context.ApplicationContextInitializer = com.epam.papaya.rrmistarter.AdapterRegistry
+org.springframework.boot.autoconfigure.EnableAutoConfiguration = com.epam.papaya.rrmistarter.conf.RrmiConf
