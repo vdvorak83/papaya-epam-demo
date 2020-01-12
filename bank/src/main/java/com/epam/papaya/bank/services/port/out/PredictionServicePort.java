@@ -13,7 +13,7 @@ import org.springframework.http.HttpMethod;
 public interface PredictionServicePort extends Adapter {
 
 //        @AdaptTo(ifc="predictionServiceImpl",methodName="predict")
-    @AdaptToRemote(method = HttpMethod.POST, endpoint = "predict", serviceName = "it will be relevant only with eurika, for now this parameter ignored")
+    @AdaptToRemote(method = HttpMethod.POST, serviceName = "it will be relevant only with eurika, for now this parameter ignored")
     Prediction predict(BankClient bankClient);
 }
 

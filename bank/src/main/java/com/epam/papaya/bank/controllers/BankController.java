@@ -2,9 +2,10 @@ package com.epam.papaya.bank.controllers;
 
 import com.epam.papaya.bank.services.BankService;
 import com.epam.papaya.bank.services.domain.BankClient;
-import com.epam.papaya.rrmistarter.annotations.MyClass;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author Evgeny Borisov

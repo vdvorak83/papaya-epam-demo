@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface AdaptToRemote {
     String serviceName();
-    String endpoint();
-    HttpMethod method() default HttpMethod.GET;
+    String endpoint() default "";
+    HttpMethod method() default HttpMethod.POST; // this default will be changed to GET automatically in case annotated method doesn't receive any parameters
    // todo Why do we need this? String dtoName();
 }

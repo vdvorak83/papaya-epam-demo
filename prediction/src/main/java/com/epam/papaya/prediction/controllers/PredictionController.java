@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Evgeny Borisov
  */
-@RestController
+//@RestController
 public class PredictionController {
 
     @Autowired
